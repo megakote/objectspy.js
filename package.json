@@ -1,0 +1,24 @@
+{
+  "name": "objectspy",
+  "version": "0.0.1",
+  "description": "Simple event system for object with syntax sugar.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/megakote/objectspy.js.git"
+  },
+  "keywords": [
+    "json",
+    "event",
+    "onchange"
+  ],
+  "author": "megakote",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/megakote/objectspy.js/issues"
+  },
+  "homepage": "https://github.com/megakote/objectspy.js"
+}
