@@ -1,9 +1,11 @@
 {
   "name": "objectspy",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "description": "Simple event system for object with syntax sugar.",
-  "main": "index.js",
+  "main": "src/objectspy.js",
   "scripts": {
+    "watch": "webpack --watch -c",
+    "build": "rm -rf ./build/*;webpack -c --optimize-minimize",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -20,5 +22,12 @@
   "bugs": {
     "url": "https://github.com/megakote/objectspy.js/issues"
   },
-  "homepage": "https://github.com/megakote/objectspy.js"
+  "homepage": "https://github.com/megakote/objectspy.js",
+  "devDependencies": {
+    "babel-loader": "^4.0.0",
+    "object-assign": "^2.0.0",
+    "path": "^0.11.14",
+    "raf.js": "0.0.4",
+    "webpack": "^1.7.2"
+  }
 }
