@@ -1,6 +1,6 @@
 {
   "name": "objectspy",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Simple event system for object with syntax sugar.",
   "main": "src/objectspy.js",
   "scripts": {
@@ -15,7 +15,12 @@
   "keywords": [
     "json",
     "event",
-    "onchange"
+    "onchange",
+    "react",
+    "data",
+    "datalayer",
+    "emmiter",
+    "eventemmiter"
   ],
   "author": "megakote",
   "license": "MIT",
