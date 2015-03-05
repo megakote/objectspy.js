@@ -7,9 +7,9 @@ module.exports = {
 
   output: {
     pathinfo: false,
+    library: 'Objectspy',
     filename: "objectspy.js",
     path: path.join(__dirname, 'build'),
-    publicPath: '/build/',
    },
 
   module: {
