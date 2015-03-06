@@ -64,7 +64,7 @@
 
     // ['block.index', 'block.index.debug', 'block.index.url'] => ['block.index']
     __getChanges() {
-      var changes = [], triger, raw_changes = Object.keys(this.utils('changes'));
+      var changes = [], raw_changes = Object.keys(this.utils('changes'));
       raw_changes.push('onchange');
       raw_changes.sort();
 
@@ -72,18 +72,15 @@
         if (typeof raw_changes[i] === 'undefined')
           continue;
 
-        triger = false;
-
         for (var n = 0; n < ii; n++) {
           if (n == i || typeof raw_changes[n] === 'undefined')
             continue;
 
-          if (raw_changes[n].indexOf(raw_changes[i]) === 0 && (triger = true))
+          if (raw_changes[n].indexOf(raw_changes[i]) === 0)
             raw_changes[n] = undefined;
          }
 
-        if (triger)
-          changes.push(raw_changes[i]);
+        changes.push(raw_changes[i]);
        }
 
       return changes;
