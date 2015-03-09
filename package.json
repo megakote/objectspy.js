@@ -1,8 +1,8 @@
 {
   "name": "objectspy",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Simple event system for object with syntax sugar.",
-  "main": "lib/objectspy.es6.js",
+  "main": "lib/objectspy.js",
   "scripts": {
     "watch": "webpack --watch -c",
     "build": "webpack -c",
