@@ -3,12 +3,12 @@
 (function () {
   'use strict';
 
-  let GC_INTERVAL = 5;
+  const GC_INTERVAL = 30;
 
   var Emmiter = require('events').EventEmitter;
   var UtilsStore = {}, no = 0;
 
-  var iterator = function(object, callback) {
+  var iterator = (object, callback) => {
     for (var key in object)
       if (object.hasOwnProperty(key))
         callback(key, object[key]);
@@ -22,11 +22,13 @@
       this._no = no++;
       this.utils();
 
-      if (typeof callback !== 'undefined' )
+      if (typeof callback !== 'undefined')
         this.utils('emmiter').on('onchange', callback);
 
-      if (params && params.gc)
-        this.utils('gc_id', setInterval(this.utils('gc'), GC_INTERVAL * 1000));
+      if (params && params.gc) {
+        var interval = typeof params.gc_interval !== 'undefined' ? params.gc_interval : GC_INTERVAL;
+        this.utils('gc_id', setInterval(this.gc.bind(this), interval * 1000));
+       }
 
       this.set('', state);
      }
@@ -34,11 +36,10 @@
     utils(key, val) {
       if (typeof UtilsStore[this._no] === 'undefined')
         UtilsStore[this._no] = {
+          changes: {},
           gc_id: false,
           loop_id: false,
-          changes: {},
           emmiter: new Emmiter(),
-          gc: this.gc.bind(this),
           loop: this.loop.bind(this),
          };
 

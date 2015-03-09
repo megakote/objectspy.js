@@ -2,10 +2,11 @@
   "name": "objectspy",
   "version": "0.3.1",
   "description": "Simple event system for object with syntax sugar.",
-  "main": "src/objectspy.js",
+  "main": "lib/objectspy.es6.js",
   "scripts": {
     "watch": "webpack --watch -c",
-    "build": "rm -rf ./build/*;webpack -c --optimize-minimize",
+    "build": "webpack -c",
+    "prepublish": "npm run build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
