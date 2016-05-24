@@ -7,7 +7,7 @@
     "dev": "webpack --watch -c",
     "build": "webpack -c",
     "prepublish": "npm run build",
-    "test": "node test/ | node_modules/.bin/tap-spec"
+    "test": "node test/ | ./node_modules/faucet/bin/cmd.js"
   },
   "repository": {
     "type": "git",
