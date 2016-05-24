@@ -50,6 +50,7 @@
      }
 
     destructor() {
+      this.utils('emmiter').removeAllListeners();
       clearInterval(this.utils('gc_id'));
       cancelAnimationFrame(this.utils('loop_id'));
       delete(UtilsStore[this._no]);
@@ -65,11 +66,12 @@
 
     // ['block.index', 'block.index.debug', 'block.index.url'] => ['block.index']
     __getChanges() {
-      var changes = [], raw_changes = Object.keys(this.utils('changes'));
+      var raw_changes = Object.keys(this.utils('changes'));
+      this.utils('changes', {});
       raw_changes.push('onchange');
       raw_changes.sort();
 
-      for (var i = 0, ii = raw_changes.length; i < ii; i++) {
+      for (var i = 0, changes = [], ii = raw_changes.length; i < ii; i++) {
         if (typeof raw_changes[i] === 'undefined')
           continue;
 
@@ -99,8 +101,6 @@
             break;
            }
        });
-
-      this.utils('changes', {});
      }
 
     gc() {
