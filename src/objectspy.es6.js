@@ -17,7 +17,7 @@
   module.exports = class Objectspy {
     constructor(state, callback, params) {
       params = typeof callback === 'object' ? callback : params;
-      callback = callback instanceof Function ? callback : params.callback;
+      callback = callback && callback instanceof Function ? callback : params ? params.callback : undefined;
 
       this._no = no++;
       this.utils();
