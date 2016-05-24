@@ -4,10 +4,10 @@
   "description": "Simple event system for object with syntax sugar.",
   "main": "lib/objectspy.js",
   "scripts": {
-    "watch": "webpack --watch -c",
+    "dev": "webpack --watch -c",
     "build": "webpack -c",
     "prepublish": "npm run build",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/ | node_modules/.bin/tap-spec"
   },
   "repository": {
     "type": "git",
@@ -31,9 +31,11 @@
   "homepage": "https://github.com/megakote/objectspy.js",
   "devDependencies": {
     "babel-loader": "^4.0.0",
+    "faucet": "0.0.1",
     "object-assign": "^2.0.0",
     "path": "^0.11.14",
     "raf.js": "0.0.4",
+    "tape": "4.5.1",
     "webpack": "^1.7.2"
   }
 }
