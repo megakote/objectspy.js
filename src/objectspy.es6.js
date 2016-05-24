@@ -30,7 +30,7 @@
         this.utils('gc_id', setInterval(this.gc.bind(this), interval * 1000));
        }
 
-      this.set('', state);
+      this.set('', state, true);
      }
 
     utils(key, val) {
