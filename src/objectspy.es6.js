@@ -136,8 +136,11 @@
      }
 
     get(path) {
-      if (!(path.length) || !(path = path.split('.')))
-        return this;
+      if (!path || !(path.length) || !(path = path.split('.'))) {
+        const result = Object.assign({}, this)
+        delete(result._no)
+        return result
+      }
 
       for (var i = 0, l = path.length, result = this; i < l; i++)
         if (typeof (result = result[path[i]]) == 'undefined')
