@@ -103,6 +103,21 @@ test('Add path callback', (assert) => {
   setTimeout(() => assert.equal(n, 1), 10)
 })
 
+test('Add null callback', (assert) => {
+  assert.plan(1);
+  const state = new Objectspy(initial_state)
+
+  let n = 0
+  state.on(null, () => n++)
+
+  state.set('foo', 2)
+  state.set('bar', 2)
+  state.set(null, 3)
+  state.set(null, {foo: 3})
+
+  setTimeout(() => assert.equal(n, 0), 10)
+})
+
 
 test('Remove path callback', (assert) => {
   assert.plan(1);

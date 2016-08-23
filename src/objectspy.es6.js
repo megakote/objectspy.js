@@ -56,11 +56,17 @@
       delete(UtilsStore[this._no]);
      }
 
+    is_valid_key(event) {
+      return typeof event !== 'undefined' && event !== null;
+    }
+
     on(event, fn) {
+      if (!this.is_valid_key(event)) return;
       this.utils('emmiter').addListener(event, fn);
      }
 
     off(event, fn) {
+      if (!this.is_valid_key(event)) return;
       this.utils('emmiter').removeListener(event, fn);
      }
 
@@ -126,10 +132,8 @@
           return;
         else if (listened)
           iterator(item, (key, item) => { callback(key, item, path); });
-        else {
-          console.warn('GC: ' + path + ' ->', item);
+        else
           this.del(path, true);
-         }
        };
 
       iterator(this, (key, item) => callback(key, this[key], ''));
@@ -150,6 +154,7 @@
      }
 
     set(path, val, silent_mode) {
+      if (!this.is_valid_key(path)) return
       if (!path) path = '';
 
       if (!silent_mode) {
