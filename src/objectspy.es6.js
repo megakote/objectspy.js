@@ -63,17 +63,15 @@ class Objectspy {
   }
 
   loop() {
-    const events = this.emmiter ? Object.keys(this.emmiter._events) : []
-    const changes = this.getchanges()
-
-    if (!events || !changes) return
+    let events, changes
+    if (!(events = this.emmiter ? Object.keys(this.emmiter._events) : [])) return
+    if (!(changes = this.getchanges())) return
 
     this.emmiter.emit('onchange', this.get(''), this, changes, '')
 
     for (var l = 0, m = events.length - 1, path; l <= m; l++) {
       path = events[l]
       for (var n = 0, o= changes.length - 1; n <= o; n++) {
-
         if (changes[n].indexOf(path) !== 0 && path.indexOf(changes[n]) !== 0) continue
         this.emmiter.emit(path, this.get(path), this, changes[n], path)
         break
