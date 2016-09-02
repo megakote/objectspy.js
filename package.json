@@ -1,6 +1,6 @@
 {
   "name": "objectspy",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Simple event system for object with syntax sugar.",
   "main": "lib/objectspy.js",
   "scripts": {
