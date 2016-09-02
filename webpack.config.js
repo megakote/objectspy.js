@@ -5,7 +5,7 @@ module.exports = ['bin', 'lib'].map(function(type){
   var config = {
     name: type,
     context: __dirname,
-    entry: path.join(__dirname, type === 'bin' ? 'index.js' : 'src/objectspy.es6.js'),
+    entry: path.join(__dirname, type === 'bin' ? 'index.js' : 'src/objectspy.js'),
 
     output: {
       pathinfo: false,

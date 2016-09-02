@@ -8,6 +8,5 @@ bin/
 index.js
 node_modules
 README.md
-src/
 TODO
 webpack.config.js
