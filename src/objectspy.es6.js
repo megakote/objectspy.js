@@ -1,197 +1,153 @@
 /* jshint esnext: true, strict: true */
 
-(function () {
-  'use strict';
+import { EventEmitter } from 'events'
 
-  const GC_INTERVAL = 30;
+class Objectspy {
+  constructor(init_state, props = {}) {
+    this.state = {}
+    this.changes = {}
+    this.emmiter = new EventEmitter()
+    this.set('', init_state, true)
 
-  var Emmiter = require('events').EventEmitter;
-  var UtilsStore = {}, no = 0;
+    if (props.gc) this._gc = setInterval(() => this.gc(), (props.gc_interval || 30) * 1000)
+  }
 
-  var iterator = (object, callback) => {
-    for (var key in object)
-      if (object.hasOwnProperty(key))
-        callback(key, object[key]);
-   };
+  destructor() {
+    this.emmiter.removeAllListeners()
+    clearTimeout(this._gc)
+    cancelAnimationFrame(this._loop)
+    delete(this.emmiter)
+  }
 
-  module.exports = class Objectspy {
-    constructor(state, callback, params) {
-      params = typeof callback === 'object' ? callback : params;
-      callback = callback && callback instanceof Function ? callback : params ? params.callback : undefined;
+  is_valid_key(path) {
+    return typeof path !== 'undefined' && path !== null ? path : undefined
+  }
 
-      this._no = no++;
-      this.utils();
+  get(path) {
+    if (!path || !(path.length) || !(path = path.split('.'))) return this.state
 
-      if (typeof callback !== 'undefined')
-        this.utils('emmiter').on('onchange', callback);
+    for (var i = 0, l = path.length, result = this.state; i < l; i++)
+      if (typeof (result = result[path[i]]) === 'undefined')
+        return
 
-      if (params && params.gc) {
-        var interval = typeof params.gc_interval !== 'undefined' ? params.gc_interval : GC_INTERVAL;
-        this.utils('gc_id', setInterval(this.gc.bind(this), interval * 1000));
-       }
+    return result
+  }
 
-      this.set('', state, true);
-     }
+  fire(path) {
+    this.changes[path] = true
+    cancelAnimationFrame(this._loop)
+    this._loop = requestAnimationFrame(() => this.loop())
+  }
 
-    utils(key, val) {
-      if (typeof UtilsStore[this._no] === 'undefined')
-        UtilsStore[this._no] = {
-          changes: {},
-          gc_id: false,
-          loop_id: false,
-          emmiter: new Emmiter(),
-          loop: this.loop.bind(this),
-         };
+  loop() {
+    const events = this.emmiter ? Object.keys(this.emmiter._events) : []
+    const raw_changes = this.changes ? Object.keys(this.changes) : []
 
-      if (typeof val !== 'undefined')
-        UtilsStore[this._no][key] = val;
+    if (!events || !raw_changes) return
 
-      return key ? UtilsStore[this._no][key] : UtilsStore[this._no];
-     }
+    this.changes = {}
+    raw_changes.sort()
 
-    destructor() {
-      this.utils('emmiter').removeAllListeners();
-      clearInterval(this.utils('gc_id'));
-      cancelAnimationFrame(this.utils('loop_id'));
-      delete(UtilsStore[this._no]);
-     }
+    for (var i = 0, changes = [], n = raw_changes.length - 1, current, next; i <= n; i++) {
+      current = raw_changes[i]
+      changes.push(current)
 
-    is_valid_key(event) {
-      return typeof event !== 'undefined' && event !== null;
+      if (current === '') i = n
+
+      // skip similar path
+      while((next = raw_changes[i + 1])) {
+        if (typeof next.indexOf === 'undefined' || next.indexOf(current + '.') !== 0) break
+        i++
+      }
     }
 
-    on(event, fn) {
-      if (!this.is_valid_key(event)) return;
-      this.utils('emmiter').addListener(event, fn);
+    if (!changes) return
+
+    this.emmiter.emit('onchange', this.get(''), this, changes[i], '')
+
+    for (var l = 0, m = events.length - 1, path; l <= m; l++) {
+      path = events[l]
+      for (var i = 0, n = changes.length - 1; i <= n; i++) {
+
+        if (changes[i].indexOf(path) !== 0 && path.indexOf(changes[i]) !== 0) continue
+        this.emmiter.emit(path, this.get(path), this, changes[i], path)
+        break
+      }
+    }
+  }
+
+  gc() {
+    const events = Object.keys(this.emmiter._events)
+
+    var iterator = (object, callback) => {
+      for (var key in object)
+        if (object.hasOwnProperty(key))
+          callback(key, object[key])
      }
 
-    off(event, fn) {
-      if (!this.is_valid_key(event)) return;
-      this.utils('emmiter').removeListener(event, fn);
-     }
+    var callback = (key, item, path) => {
+      if (key.indexOf('_') === 0) return
 
-    // ['block.index', 'block.index.debug', 'block.index.url'] => ['block.index']
-    __getChanges() {
-      var raw_changes = Object.keys(this.utils('changes'));
-      this.utils('changes', {});
-      raw_changes.push('onchange');
-      raw_changes.sort();
+      path = (path ? path + '.' : '') + key
 
-      for (var i = 0, changes = [], ii = raw_changes.length; i < ii; i++) {
-        if (typeof raw_changes[i] === 'undefined')
-          continue;
-
-        for (var n = 0; n < ii; n++) {
-          if (n == i || typeof raw_changes[n] === 'undefined')
-            continue;
-
-          if (raw_changes[n].indexOf(raw_changes[i]) === 0)
-            raw_changes[n] = undefined;
-         }
-
-        changes.push(raw_changes[i]);
-       }
-
-      return changes;
-     }
-
-    // compare emmiter._events <==> changes: block.index block.index.debug <==> block.index
-    loop() {
-      var changes = this.__getChanges(), ii = changes.length;
-      var emmiter = this.utils('emmiter');
-
-      iterator(emmiter._events, (event, fn) => {
-        for (var i = 0; i < ii; i++)
-          if (changes[i].indexOf(event) === 0 || event.indexOf(changes[i]) === 0) {
-            emmiter.emit(event, this, event, changes[i]);
-            break;
-           }
-       });
-     }
-
-    gc() {
-      var events = Object.keys(this.utils('emmiter')._events);
-
-      var callback = (key, item, path) => {
-        if (key.indexOf('_') === 0)
-          return;
-
-        path = (path ? path + '.' : '') + key;
-
-        var listened = false,
-            listened_strict = false;
-
-        for (var i = 0, ii = events.length; i < ii; i++) {
-          if (events[i] === path && (listened_strict = true))
-            break;
-          else if (events[i].indexOf(path) === 0)
-            listened = true;
-         }
-
-        if (listened_strict)
-          return;
-        else if (listened)
-          iterator(item, (key, item) => { callback(key, item, path); });
-        else
-          this.del(path, true);
-       };
-
-      iterator(this, (key, item) => callback(key, this[key], ''));
-     }
-
-    get(path) {
-      if (!path || !(path.length) || !(path = path.split('.'))) {
-        const result = Object.assign({}, this)
-        delete(result._no)
-        return result
+      for (var i = 0, n = events.length, listened, listened_strict; i < n; i++) {
+        if (events[i] === path || path.indexOf(events[i]) === 0) return
+        if (events[i].indexOf(path) === 0) listened = true
       }
 
-      for (var i = 0, l = path.length, result = this; i < l; i++)
-        if (typeof (result = result[path[i]]) == 'undefined')
-          return undefined;
-
-      return result;
-     }
-
-    set(path, val, silent_mode) {
-      if (!this.is_valid_key(path)) return
-      if (!path) path = '';
-
-      if (!silent_mode) {
-        this.utils('changes')[path] = true;
-        cancelAnimationFrame(this.utils('loop_id'));
-       }
-
-      if (!(path.length) || !(path = path.split('.')))
-        Object.assign(this, val);
+      if (listened)
+        iterator(item, (key, item) => callback(key, item, path))
       else
-        for (var i = 0, n = path.length, result = this; i < n && result !== undefined; i++) {
-          var field = path[i];
-
-          if (i === n - 1) {
-            if (typeof val === 'undefined')
-              delete(result[field]);
-            else if (typeof result[field] === 'object')
-              result[field] = val;
-            else if (result[field] != val)
-              result[field] = val;
-           }
-          else if (typeof result[field] === 'undefined') {
-            result[field] = {};
-           }
-
-          result = result[field];
-         }
-
-      if (!silent_mode)
-        this.utils('loop_id', requestAnimationFrame(this.utils('loop')));
-
-      return this;
-     }
-
-    del(path, silent_mode) {
-      this.set(path, undefined, silent_mode);
+        this.del(path, false)
     }
-   };
 
- })();
+
+    iterator(this.state, (key, item) => callback(key, item, ''))
+  }
+
+  set(path, value, silent = false) {
+    if (typeof (path = this.is_valid_key(path)) === 'undefined') return
+    const original_path = path
+
+    if (!(path.length) || !(path = path.split('.'))) {
+      Object.assign(this.state, value)
+      if (!silent) this.fire(original_path)
+      return this
+    }
+
+    for (var i = 0, n = path.length - 1, result = this.state, field, is_write = false; i <= n && result !== undefined; i++) {
+      field = path[i]
+
+      if (i !== n) {
+        result = result[field] = result[field] || {}
+        continue
+      }
+
+      if (typeof value === 'undefined' && (is_write = true)) // delete element
+        delete(result[field])
+      else if (typeof result[field] === 'object' && (is_write = true)) // overwrite { } w/o compare
+        result[field] = value
+      else if (result[field] !== value && (is_write = true)) // write plain object w compare
+        result[field] = value
+    }
+
+    if (!silent && is_write) this.fire(original_path)
+    return this
+  }
+
+  del(path, silent = false){
+    return this.set(path, undefined, silent)
+  }
+
+  on(path, handler) {
+    if (typeof (path = this.is_valid_key(path)) === 'undefined') return
+    this.emmiter.addListener(path, handler)
+  }
+
+  off(path, handler) {
+    if (typeof (path = this.is_valid_key(path)) === 'undefined') return
+    this.emmiter.removeListener(path, handler)
+  }
+}
+
+export default Objectspy
