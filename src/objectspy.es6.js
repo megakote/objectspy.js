@@ -93,7 +93,7 @@ class Objectspy {
 
       path = (path ? path + '.' : '') + key
 
-      for (var i = 0, n = events.length, listened, listened_strict; i < n; i++) {
+      for (var i = 0, n = events.length, listened; i < n; i++) {
         if (events[i] === path || path.indexOf(events[i]) === 0) return
         if (events[i].indexOf(path) === 0) listened = true
       }

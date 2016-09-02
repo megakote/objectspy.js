@@ -30,6 +30,8 @@ module.exports = ['bin', 'lib'].map(function(type){
      ],
    };
 
+  if (type === 'lib')
+    config.externals = { events: 'events' }
 
   if (type === 'bin')
     config.plugins.push( new webpack.optimize.UglifyJsPlugin({minimize: true}) );
