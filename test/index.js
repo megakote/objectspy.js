@@ -2,8 +2,8 @@ const test = require('tape')
 const Objectspy = require('../src/objectspy.es6.js')
 
 // polyfill
-global.cancelAnimationFrame = id => clearTimeout(id);
-global.requestAnimationFrame = callback => setTimeout(() => callback(), 1);
+global.cancelAnimationFrame = id => clearTimeout(id)
+global.requestAnimationFrame = callback => setTimeout(() => callback(), 1)
 
 const initial_state = { foo: Math.random(), bar: Math.random(), deep: { deep1: Math.random(), deep2: Math.random() } }
 
@@ -58,16 +58,24 @@ test('Get nested no exist path', assert => {
 test('Update state', assert => {
   assert.plan(1)
   const value = Math.random()
-  const state = new Objectspy(initial_state);
+  const state = new Objectspy(initial_state)
   state.set('foo', value)
   assert.deepEqual(state.get(), Object.assign({}, initial_state , { foo: value }))
+})
+
+test('Update state by object', assert => {
+  assert.plan(1)
+  const value = { deep3: Math.random() }
+  const state = new Objectspy(initial_state)
+  state.set('deep', value)
+  assert.deepEqual(state.get(), Object.assign({}, initial_state , { deep: value }))
 })
 
 
 test('Update nested state', assert => {
   assert.plan(1)
   const value = Math.random()
-  const state = new Objectspy(initial_state);
+  const state = new Objectspy(initial_state)
   state.set('deep.deep1', value)
 
   const expected_result = Object.assign({}, initial_state)
@@ -76,11 +84,24 @@ test('Update nested state', assert => {
   assert.deepEqual(state.get(), expected_result)
 })
 
+test('Update similar path', assert => {
+  assert.plan(1)
+  const value = Math.random()
+  const state = new Objectspy(initial_state)
+  state.set('deep.deep1', value)
+  state.set('deep', value)
+
+  const expected_result = Object.assign({}, initial_state)
+  expected_result.deep = value
+
+  assert.deepEqual(state.get(), expected_result)
+})
+
 
 test('Delete state', assert => {
   assert.plan(1)
 
-  const state = new Objectspy(initial_state);
+  const state = new Objectspy(initial_state)
   state.del('foo')
 
   const expected_result = Object.assign({}, initial_state)
@@ -93,7 +114,7 @@ test('Delete nested state', assert => {
 
   assert.plan(1)
 
-  const state = new Objectspy(initial_state);
+  const state = new Objectspy(initial_state)
   state.del('deep.deep1')
 
   const expected_result = Object.assign({}, initial_state)
@@ -121,7 +142,7 @@ test('Add onchange callback', assert => {
 
 
 test('Remove onchange callback', assert => {
-  assert.plan(1);
+  assert.plan(1)
   const state = new Objectspy(initial_state)
 
   let n = 0
@@ -139,7 +160,7 @@ test('Remove onchange callback', assert => {
 
 
 test('Update w/o run onchange callback (silent mode)', assert => {
-  assert.plan(1);
+  assert.plan(1)
   const state = new Objectspy(initial_state)
   let n = 0
   state.on('onchange', () => n++)
@@ -149,7 +170,7 @@ test('Update w/o run onchange callback (silent mode)', assert => {
 
 
 test('Add path callback', assert => {
-  assert.plan(1);
+  assert.plan(1)
   const state = new Objectspy(initial_state)
 
   let n = 0
@@ -161,7 +182,7 @@ test('Add path callback', assert => {
 })
 
 test('Add nested path callback', assert => {
-  assert.plan(1);
+  assert.plan(1)
   const state = new Objectspy(initial_state)
 
   let n = 0
@@ -174,7 +195,7 @@ test('Add nested path callback', assert => {
 })
 
 test('Prevent callback on set similar value', assert => {
-  assert.plan(2);
+  assert.plan(2)
   const state = new Objectspy(initial_state)
 
   let n = 0
@@ -191,8 +212,21 @@ test('Prevent callback on set similar value', assert => {
 })
 
 
+test('Add similar callbacks', assert => {
+  assert.plan(1)
+  const state = new Objectspy(initial_state)
+
+  let n = 0
+  state.on('deep', () => n++)
+  state.on('deep.deep1', () => n++)
+  state.set('deep.deep1', Math.random())
+
+  setTimeout(() => assert.equal(n, 2), 1)
+})
+
+
 test('Add null callback', assert => {
-  assert.plan(1);
+  assert.plan(1)
   const state = new Objectspy(initial_state)
 
   let n = 0
@@ -208,7 +242,7 @@ test('Add null callback', assert => {
 
 
 test('Remove path callback', assert => {
-  assert.plan(1);
+  assert.plan(1)
   const state = new Objectspy(initial_state)
   let n = 0
   const callback = () => n++
@@ -239,9 +273,10 @@ test('GC', assert => {
 
   const state = new Objectspy(initial_state, { gc: true, gc_interval: 1 })
   state.on('foo', () => {})
+  state.on('deep.deep1', () => {})
 
   setTimeout(() => {
-    assert.deepEqual(state.get(), { foo: initial_state.foo })
+    assert.deepEqual(state.get(), { foo: initial_state.foo, deep: { deep1: initial_state.deep.deep1 } })
     state.destructor()
   }, 1001)
 })
