@@ -1,3 +1,5 @@
+.babelrc
+.codeclimate.yml
 .gitignore
 .npmignore
 .nyc_output
