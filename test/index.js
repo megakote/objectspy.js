@@ -1,5 +1,5 @@
 const test = require('tape')
-const Objectspy = require('../lib/objectspy.js')
+const Objectspy = require('../src/objectspy.es6.js')
 
 // polyfill
 global.cancelAnimationFrame = id => clearTimeout(id);
@@ -173,22 +173,22 @@ test('Add nested path callback', assert => {
   setTimeout(() => assert.equal(n, 1), 1)
 })
 
-// test('Prevent callback on set similar value', assert => {
-//   assert.plan(2);
-//   const state = new Objectspy(initial_state)
+test('Prevent callback on set similar value', assert => {
+  assert.plan(2);
+  const state = new Objectspy(initial_state)
 
-//   let n = 0
-//   const val = Math.random()
+  let n = 0
+  const val = Math.random()
 
-//   state.on('foo', () => n++)
-//   state.set('foo', val)
+  state.on('foo', () => n++)
+  state.set('foo', val)
 
-//   setTimeout(() => {
-//     assert.equal(n, 1)
-//     state.set('foo', val)
-//     setTimeout(() => assert.equal(n, 1), 1)
-//   }, 1)
-// })
+  setTimeout(() => {
+    assert.equal(n, 1)
+    state.set('foo', val)
+    setTimeout(() => assert.equal(n, 1), 1)
+  }, 1)
+})
 
 
 test('Add null callback', assert => {
