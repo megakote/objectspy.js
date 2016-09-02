@@ -18,7 +18,7 @@ module.exports = ['bin', 'lib'].map(function(type){
 
     module: {
       loaders: [
-        {test: /\.js$/, loader: 'babel-loader?experimental&playground', exclude: [/node_modules/]},
+        {test: /\.js$/, loader: 'babel-loader', exclude: [/node_modules/]},
        ]
      },
 

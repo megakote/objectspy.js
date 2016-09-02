@@ -140,13 +140,17 @@ class Objectspy {
   }
 
   on(path, handler) {
-    if (typeof (path = this.is_valid_key(path)) === 'undefined') return
-    this.emmiter.addListener(path, handler)
+    return this.event('on', path, handler)
   }
 
   off(path, handler) {
+    return this.event('off', path, handler)
+  }
+
+  event (mode, path, handler) {
     if (typeof (path = this.is_valid_key(path)) === 'undefined') return
-    this.emmiter.removeListener(path, handler)
+    if (mode === 'on') this.emmiter.addListener(path, handler)
+    if (mode === 'off') this.emmiter.removeListener(path, handler)
   }
 }
 
