@@ -48,11 +48,11 @@ class Objectspy {
     this.changes = {}
     raw_changes.sort()
 
-    for (var i = 0, changes = [], n = raw_changes.length - 1, current, next; i <= n; i++) {
+    for (var i = 0, changes = [], k = raw_changes.length - 1, current, next; i <= k; i++) {
       current = raw_changes[i]
       changes.push(current)
 
-      if (current === '') i = n
+      if (current === '') i = k
 
       // skip similar path
       while((next = raw_changes[i + 1])) {
@@ -67,10 +67,10 @@ class Objectspy {
 
     for (var l = 0, m = events.length - 1, path; l <= m; l++) {
       path = events[l]
-      for (var i = 0, n = changes.length - 1; i <= n; i++) {
+      for (var n = 0, o= changes.length - 1; n <= o; n++) {
 
-        if (changes[i].indexOf(path) !== 0 && path.indexOf(changes[i]) !== 0) continue
-        this.emmiter.emit(path, this.get(path), this, changes[i], path)
+        if (changes[n].indexOf(path) !== 0 && path.indexOf(changes[n]) !== 0) continue
+        this.emmiter.emit(path, this.get(path), this, changes[n], path)
         break
       }
     }
