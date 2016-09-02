@@ -39,11 +39,9 @@ class Objectspy {
     this._loop = requestAnimationFrame(() => this.loop())
   }
 
-  loop() {
-    const events = this.emmiter ? Object.keys(this.emmiter._events) : []
+  getchanges() {
     const raw_changes = this.changes ? Object.keys(this.changes) : []
-
-    if (!events || !raw_changes) return
+    if (!raw_changes) return
 
     this.changes = {}
     raw_changes.sort()
@@ -52,7 +50,7 @@ class Objectspy {
       current = raw_changes[i]
       changes.push(current)
 
-      if (current === '') i = k
+      if (current === '') break
 
       // skip similar path
       while((next = raw_changes[i + 1])) {
@@ -61,9 +59,16 @@ class Objectspy {
       }
     }
 
-    if (!changes) return
+    return changes
+  }
 
-    this.emmiter.emit('onchange', this.get(''), this, changes[i], '')
+  loop() {
+    const events = this.emmiter ? Object.keys(this.emmiter._events) : []
+    const changes = this.getchanges()
+
+    if (!events || !changes) return
+
+    this.emmiter.emit('onchange', this.get(''), this, changes, '')
 
     for (var l = 0, m = events.length - 1, path; l <= m; l++) {
       path = events[l]
