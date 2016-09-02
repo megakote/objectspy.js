@@ -3,3 +3,6 @@ sudo: false
 node_js:
   - "6"
 after_success: npm run stats
+cache:
+  directories:
+    - node_modules
