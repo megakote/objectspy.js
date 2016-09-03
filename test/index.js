@@ -1,5 +1,5 @@
 const test = require('tape')
-const Objectspy = require('../src/objectspy.es6.js')
+const Objectspy = require('../src/objectspy.js')
 
 // polyfill
 global.cancelAnimationFrame = id => clearTimeout(id)
