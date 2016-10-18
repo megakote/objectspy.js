@@ -84,6 +84,7 @@ test('Update nested state', assert => {
   assert.deepEqual(state.get(), expected_result)
 })
 
+
 test('Update similar path', assert => {
   assert.plan(1)
   const value = Math.random()
@@ -110,6 +111,7 @@ test('Delete state', assert => {
   assert.deepEqual(state.get(), expected_result)
 })
 
+
 test('Delete nested state', assert => {
 
   assert.plan(1)
@@ -123,6 +125,19 @@ test('Delete nested state', assert => {
   assert.deepEqual(state.get(), expected_result)
 })
 
+test('Delete all', assert => {
+  assert.plan(2)
+  const state = new Objectspy(initial_state)
+
+  let n = 0
+  const callback = () => n++
+  state.on('onchange', callback)
+  state.on('foo', callback)
+  state.del('')
+  assert.deepEqual(state.get(), {})
+  setTimeout(() => assert.equal(n, 2), 1)
+})
+
 
 test('Add onchange callback', assert => {
   assert.plan(2)
@@ -130,13 +145,18 @@ test('Add onchange callback', assert => {
   const state = new Objectspy(initial_state)
 
   let n = 0
-  state.on('onchange', () => n++)
+  const handler = () => n++
+  state.on('', handler)
+  state.on('*', handler)
+  state.on('onchange', handler)
+
+  state.set('foo', Math.random())
+  assert.equal(n, 0)
 
   // async call && requestAnimationFrame
   setTimeout(() => {
-    state.set('foo', Math.random())
-    assert.equal(n, 0)
-    setTimeout(() => assert.equal(n, 1), 1) // only async callback execeution
+    state.set('', { foo: Math.random() })
+    setTimeout(() => assert.equal(n, 2 * 3), 1) // only async callback execeution
   }, 1)
 })
 
@@ -271,12 +291,12 @@ test('Update w/o call path callback (silent mode)', assert => {
 test('GC', assert => {
   assert.plan(1)
 
-  const state = new Objectspy(initial_state, { gc: true, gc_interval: 1 })
+  const state = new Objectspy(initial_state, { gc: true, gc_interval: 0.01 })
   state.on('foo', () => {})
   state.on('deep.deep1', () => {})
 
   setTimeout(() => {
     assert.deepEqual(state.get(), { foo: initial_state.foo, deep: { deep1: initial_state.deep.deep1 } })
     state.destructor()
-  }, 1001)
+  }, 10)
 })
