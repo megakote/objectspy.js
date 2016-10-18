@@ -16,19 +16,23 @@ class Objectspy {
     this.emmiter.removeAllListeners()
     clearTimeout(this._gc)
     cancelAnimationFrame(this._loop)
-    delete(this.emmiter)
+    delete this.emmiter
   }
 
   is_valid_key(path) {
-    return typeof path !== 'undefined' && path !== null ? path : undefined
+    let valid = typeof path !== 'undefined' && path !== null ? path : undefined
+    if (valid === '*') valid = ''
+    if (valid === 'onchange') valid = ''
+    return valid
   }
 
   get(path) {
     if (!path || !(path.length) || !(path = path.split('.'))) return this.state
 
-    for (var i = 0, l = path.length, result = this.state; i < l; i++)
-      if (typeof (result = result[path[i]]) === 'undefined')
-        return
+    for (var i = 0, l = path.length, result = this.state; i < l; i++) {
+      result = result[path[i]]
+      if (typeof result === 'undefined') return
+    }
 
     return result
   }
@@ -54,7 +58,7 @@ class Objectspy {
 
       // skip similar path
       while((next = raw_changes[i + 1])) {
-        if (typeof next.indexOf === 'undefined' || next.indexOf(current + '.') !== 0) break
+        if (typeof next.indexOf === 'undefined' || next.indexOf(`${current}.`) !== 0) break
         i++
       }
     }
@@ -63,14 +67,15 @@ class Objectspy {
   }
 
   loop() {
-    let events, changes
-    if (!(events = this.emmiter ? Object.keys(this.emmiter._events) : [])) return
-    if (!(changes = this.getchanges())) return
+    const events = this.emmiter ? Object.keys(this.emmiter._events) : []
+    if (!events) return
 
-    this.emmiter.emit('onchange', this.get(''), this, changes, '')
+    const changes = this.getchanges()
+    if (!changes) return
 
     for (var l = 0, m = events.length - 1, path; l <= m; l++) {
       path = events[l]
+
       for (var n = 0, o= changes.length - 1; n <= o; n++) {
         if (changes[n].indexOf(path) !== 0 && path.indexOf(changes[n]) !== 0) continue
         this.emmiter.emit(path, this.get(path), this, changes[n], path)
@@ -82,13 +87,12 @@ class Objectspy {
   gc() {
     const events = Object.keys(this.emmiter._events)
 
-    var iterator = (object, callback) => {
-      for (var key in object)
-        if (object.hasOwnProperty(key))
-          callback(key, object[key])
+    const iterator = (object, callback) => {
+      for (var key in object) if (object.hasOwnProperty(key))
+        callback(key, object[key])
      }
 
-    var callback = (key, item, path) => {
+    const callback = (key, item, path) => {
       if (key.indexOf('_') === 0) return
 
       path = (path ? path + '.' : '') + key
@@ -98,47 +102,45 @@ class Objectspy {
         if (events[i].indexOf(path) === 0) listened = true
       }
 
-      if (listened)
-        iterator(item, (key, item) => callback(key, item, path))
-      else
-        this.del(path, false)
+      if (listened) iterator(item, (key, item) => callback(key, item, path))
+      else this.del(path, false)
     }
-
 
     iterator(this.state, (key, item) => callback(key, item, ''))
   }
 
   set(path, value, silent = false) {
-    if (typeof (path = this.is_valid_key(path)) === 'undefined') return
-    const original_path = path
+    if (typeof (path = this.is_valid_key(path)) === 'undefined') return this
+    if (!path.length) return this.setRoot(path, value, silent)
 
-    if (!(path.length) || !(path = path.split('.'))) {
-      Object.assign(this.state, value)
-      if (!silent) this.fire(original_path)
-      return this
-    }
-
-    for (var i = 0, n = path.length - 1, result = this.state, field, is_write = false; i <= n && result !== undefined; i++) {
-      field = path[i]
+    const split_path = path.split('.')
+    let is_write = false
+    for (let i = 0, n = split_path.length - 1, result = this.state, field; i <= n && result !== undefined; i++) {
+      field = split_path[i]
 
       if (i !== n) {
         result = result[field] = result[field] || {}
         continue
       }
 
-      if (typeof value === 'undefined' && (is_write = true)) // delete element
-        delete(result[field])
-      else if (typeof result[field] === 'object' && (is_write = true)) // overwrite { } w/o compare
-        result[field] = value
-      else if (result[field] !== value && (is_write = true)) // write plain object w compare
-        result[field] = value
+      if (typeof value === 'undefined' && (is_write = true)) delete result[field]                   // delete element
+      else if (typeof result[field] === 'object' && (is_write = true)) result[field] = value        // overwrite { } w/o compare
+      else if (result[field] !== value && (is_write = true)) result[field] = value                  // write plain object w compare
     }
 
-    if (!silent && is_write) this.fire(original_path)
+    if (!silent && is_write) this.fire(path)
     return this
   }
 
-  del(path, silent = false){
+  setRoot(path, value, silent) {
+    if (value) Object.assign(this.state, value)
+    else this.state = {}
+
+    if (!silent) this.fire(path)
+    return this
+  }
+
+  del(path, silent = false) {
     return this.set(path, undefined, silent)
   }
 
@@ -150,7 +152,7 @@ class Objectspy {
     return this.event('off', path, handler)
   }
 
-  event (mode, path, handler) {
+  event(mode, path, handler) {
     if (typeof (path = this.is_valid_key(path)) === 'undefined') return
     if (mode === 'on') this.emmiter.addListener(path, handler)
     if (mode === 'off') this.emmiter.removeListener(path, handler)
